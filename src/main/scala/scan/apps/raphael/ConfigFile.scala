@@ -1,7 +1,7 @@
 package scan.apps.raphael
 
 import scala.xml.{NodeSeq, XML}
-import java.io._
+import java.io.{File}
 import java.lang.System.{getProperty}
 
 object Config {

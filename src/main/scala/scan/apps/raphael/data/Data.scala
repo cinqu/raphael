@@ -4,13 +4,17 @@ import org.squeryl._
 import dsl._
 import PrimitiveTypeMode._
 
-case class ImageFile(val id: Long, val path: String) extends KeyedEntity[Long] {
+case class ImageFile(val path: String) extends KeyedEntity[Long] {
+  var id: Long = 0
+
   lazy val tags = Library.imageTags.left(this)
 
   override def toString = path
 }
 
-case class Tag(val id: Long, val name: String) extends KeyedEntity[Long] {
+case class Tag(val name: String) extends KeyedEntity[Long] {
+  var id: Long = 0
+
   lazy val images = Library.imageTags.right(this)
 
   override def toString = inTransaction{

@@ -1,11 +1,36 @@
 package scan.apps.raphael
 
-/**
- * Created by IntelliJ IDEA.
- * User: tom
- * Date: 30/01/11
- * Time: 22:18
- * To change this template use File | Settings | File Templates.
- */
+import scala.swing._
+import event._
+import data._
+import org.squeryl.PrimitiveTypeMode._
+import javax.swing.{ImageIcon}
 
-class ListRenderers
+class TagRenderer(c: Label) extends ListView.AbstractRenderer[Tag, Label](c) {
+  def configure(l: ListView[_], selected: Boolean, focused: Boolean, a: Tag, index: Int) = {
+    component.xAlignment = Alignment.Left
+    component.yAlignment = Alignment.Top
+    component.text = a.name
+
+    if (selected) {
+      component.border = Swing.LineBorder(l.selectionBackground, 1)
+    } else {
+      component.border = Swing.EmptyBorder(1)
+    }
+  }
+}
+
+class ImageRenderer(c: Label) extends ListView.AbstractRenderer[ImageFile, Label](c) {
+  def configure(l: ListView[_], selected: Boolean, focused: Boolean, a: ImageFile, index: Int) = {
+    component.xAlignment = Alignment.Left
+    component.yAlignment = Alignment.Top
+    component.icon = new ImageIcon(a.path)
+    component.text = a.path
+
+    if (selected) {
+      component.border = Swing.LineBorder(l.selectionBackground, 1)
+    } else {
+      component.border = Swing.EmptyBorder(1)
+    }
+  }
+}

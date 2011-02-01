@@ -4,6 +4,7 @@ import org.squeryl.{Schema, SessionFactory, Session}
 import org.squeryl.adapters.{H2Adapter}
 import org.squeryl.PrimitiveTypeMode._
 import scan.apps.raphael.{Config}
+import java.io.{File}
 
 object Library extends Schema {
   val images = table[ImageFile]("images")
@@ -30,8 +31,25 @@ object Library extends Schema {
     )
 
     transaction{
-      //create
+      create
+      tags.insertOrUpdate(Tag("untagged"))
       Library.printDdl
     }
+  }
+
+  private def recursiveListImageFiles(f: File): Array[File] = {
+    val image_pattern = """.*(\.(?i)(jpg|png|gif|bmp))$"""
+    val these = f.listFiles
+    these ++ these.filter(_.isDirectory).flatMap(recursiveListImageFiles)
+    these.filter(f => image_pattern.r.findFirstIn(f.getName).isDefined)
+  }
+
+  def doImport(dir: File) = {
+    recursiveListImageFiles(dir).foreach(f => {
+      val ip = ImageFile(f.getPath)
+      inTransaction{
+        images.insertOrUpdate(ip)
+      }
+    })
   }
 }
