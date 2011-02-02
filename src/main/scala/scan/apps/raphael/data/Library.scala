@@ -12,6 +12,8 @@ object Library extends Schema {
 
   val imageTags = manyToManyRelation(images, tags).via[ImageTag]((i, t, itag) => (itag.imageId === i.id, t.id === itag.tagId))
 
+  lazy val untagged: Tag = inTransaction(findOrAddTag("untagged"))
+
   on(images)(i => declare(
     columns(i.id, i.path) are (unique, indexed),
     i.path is (dbType("varchar(255)"))
@@ -30,11 +32,9 @@ object Library extends Schema {
       Session.create(java.sql.DriverManager.getConnection(dbString, "", ""), new H2Adapter)
     )
 
-    transaction{
+    /*transaction{
       create
-      tags.insertOrUpdate(Tag("untagged"))
-      Library.printDdl
-    }
+    }*/
   }
 
   private def recursiveListImageFiles(f: File): Array[File] = {
@@ -44,12 +44,34 @@ object Library extends Schema {
     these.filter(f => image_pattern.r.findFirstIn(f.getName).isDefined)
   }
 
-  def doImport(dir: File) = {
-    recursiveListImageFiles(dir).foreach(f => {
-      val ip = ImageFile(f.getPath)
-      inTransaction{
-        images.insertOrUpdate(ip)
-      }
-    })
+  def doImport(dir: File) = inTransaction{
+    recursiveListImageFiles(dir).foreach(f => findOrAddImage(f.getPath))
+  }
+
+  def findOrAddTag(t: String) = inTransaction{
+    val r = tags.where(_.name === t)
+    if (r.isEmpty) {
+      val tmp = Tag(t)
+      tags.insert(tmp)
+      tmp
+    } else {
+      r.single
+    }
+  }
+
+  def findOrAddImage(t: String) = inTransaction{
+    val r = images.where(_.path === t)
+    if (r.isEmpty) {
+      val tmp = ImageFile(t)
+      images.insert(tmp)
+      imageTags.insert(ImageTag(tmp.id, untagged.id))
+      tmp
+    } else {
+      r.single
+    }
+  }
+
+  def tag(img: ImageFile, tag: Tag) = inTransaction{
+    imageTags.insert(ImageTag(img.id, tag.id))
   }
 }

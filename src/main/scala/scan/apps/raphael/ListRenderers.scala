@@ -10,7 +10,7 @@ class TagRenderer(c: Label) extends ListView.AbstractRenderer[Tag, Label](c) {
   def configure(l: ListView[_], selected: Boolean, focused: Boolean, a: Tag, index: Int) = {
     component.xAlignment = Alignment.Left
     component.yAlignment = Alignment.Top
-    component.text = a.name
+    component.text = a.toString
 
     if (selected) {
       component.border = Swing.LineBorder(l.selectionBackground, 1)
@@ -24,8 +24,9 @@ class ImageRenderer(c: Label) extends ListView.AbstractRenderer[ImageFile, Label
   def configure(l: ListView[_], selected: Boolean, focused: Boolean, a: ImageFile, index: Int) = {
     component.xAlignment = Alignment.Left
     component.yAlignment = Alignment.Top
-    component.icon = new ImageIcon(a.path)
-    component.text = a.path
+    val tmp = new ImageIcon(a.path)
+    component.icon = new ImageIcon(tmp.getImage.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST))
+    component.text = a.path + "\n" + inTransaction(a.tags.map(_.name).reduceRight(_+", "+_))
 
     if (selected) {
       component.border = Swing.LineBorder(l.selectionBackground, 1)
