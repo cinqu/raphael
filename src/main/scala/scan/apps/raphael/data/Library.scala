@@ -12,7 +12,7 @@ object Library extends Schema {
 
   val imageTags = manyToManyRelation(images, tags).via[ImageTag]((i, t, itag) => (itag.imageId === i.id, t.id === itag.tagId))
 
-  lazy val untagged: Tag = inTransaction(findOrAddTag("untagged"))
+  lazy val untagged: Tag = inTransaction(findOrAddTag("all"))
 
   on(images)(i => declare(
     columns(i.id, i.path) are (unique, indexed),
@@ -24,17 +24,13 @@ object Library extends Schema {
     t.name is (dbType("varchar(30)"))
   ))
 
-  def activate = {
+  def activate : Unit = {
     val dbString = "jdbc:h2:" + Config.configDir + "/database"
 
     Class.forName("org.h2.Driver")
     SessionFactory.concreteFactory = Some(() =>
       Session.create(java.sql.DriverManager.getConnection(dbString, "", ""), new H2Adapter)
     )
-
-    /*transaction{
-      create
-    }*/
   }
 
   private def recursiveListImageFiles(f: File): Array[File] = {

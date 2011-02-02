@@ -6,11 +6,15 @@ import data._
 import org.squeryl.PrimitiveTypeMode._
 import scala.actors._
 import Actor._
+import java.awt.{Cursor}
 
 object App extends SimpleSwingApplication {
   def top = new MainFrame {
     title = "Raphael 0.1"
     preferredSize = new Dimension(800, 600)
+
+    lazy val waitCursor = new Cursor(Cursor.WAIT_CURSOR)
+    lazy val defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR)
 
     lazy val openAction: Action = Action("Add Folder to Collection") {
       val chooser = new FileChooser {
@@ -19,7 +23,11 @@ object App extends SimpleSwingApplication {
       }
 
       chooser.showOpenDialog(commandPane) match {
-        case FileChooser.Result.Approve => Library.doImport(chooser.selectedFile)
+        case FileChooser.Result.Approve => actor{
+          cursor = waitCursor
+          Library.doImport(chooser.selectedFile)
+          cursor = defaultCursor
+        }
       }
     }
 
@@ -40,8 +48,17 @@ object App extends SimpleSwingApplication {
       contents += new Button("Start Slideshow")
       contents += newTag
       contents += new Button(Action("Tag!") {
-        val tag = Library.findOrAddTag(newTag.text)
-        Library.tag(imagePane.selection.items.head, tag)
+        actor{
+          cursor = waitCursor
+
+          newTag.text.split(' ').foreach{
+            t =>
+              imagePane.selection.items.foreach(Library.tag(_, Library.findOrAddTag(t)))
+              imagePane.repaint
+          }
+
+          cursor = defaultCursor
+        }
       })
     }
 
@@ -58,17 +75,28 @@ object App extends SimpleSwingApplication {
 
     reactions += {
       case EditDone(`tagSearch`) => actor{
+        cursor = waitCursor
         inTransaction{
           val tags = tagSearch.text.split(' ').toList
           tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq)
         }
+        cursor = defaultCursor
       }
 
       case ListSelectionChanged(`tagBox`, _, _) => actor{
+        cursor = waitCursor
+
+        var imgs: Seq[ImageFile] = Seq.empty
+
         inTransaction{
-          val imgs = tagBox.selection.items.head.images.toSeq
-          if (!imgs.isEmpty) imagePane.listData = imgs
+          tagBox.selection.items.foreach{
+            tag =>
+              imgs ++= tag.images.toSeq
+          }
         }
+        imagePane.listData = imgs.groupBy(_.path).map(_._2.head).toSeq
+
+        cursor = defaultCursor
       }
     }
 

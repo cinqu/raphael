@@ -26,7 +26,7 @@ class ImageRenderer(c: Label) extends ListView.AbstractRenderer[ImageFile, Label
     component.yAlignment = Alignment.Top
     val tmp = new ImageIcon(a.path)
     component.icon = new ImageIcon(tmp.getImage.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST))
-    component.text = a.path + "\n" + inTransaction(a.tags.map(_.name).reduceRight(_+", "+_))
+    component.text = inTransaction(a.tags.map(_.name).reduceRight(_ + ", " + _))
 
     if (selected) {
       component.border = Swing.LineBorder(l.selectionBackground, 1)
