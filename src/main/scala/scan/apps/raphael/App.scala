@@ -94,7 +94,7 @@ object App extends SimpleSwingApplication {
               imgs ++= tag.images.toSeq
           }
         }
-        imagePane.listData = imgs.groupBy(_.path).map(_._2.head).toSeq
+        imagePane.listData = imgs.distinct
 
         cursor = defaultCursor
       }
