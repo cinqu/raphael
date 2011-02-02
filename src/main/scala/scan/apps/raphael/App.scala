@@ -57,15 +57,18 @@ object App extends SimpleSwingApplication {
     listenTo(tagSearch, tagBox.selection, imagePane)
 
     reactions += {
-      case EditDone(`tagSearch`) => inTransaction{
-        val tags = tagSearch.text.split(' ').toList
-        tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq)
-        //tagBox.repaint
+      case EditDone(`tagSearch`) => actor{
+        inTransaction{
+          val tags = tagSearch.text.split(' ').toList
+          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq)
+        }
       }
 
-      case ListSelectionChanged(`tagBox`, _, _) => inTransaction{
-        val imgs = tagBox.selection.items.head.images.toSeq
-        if (!imgs.isEmpty) imagePane.listData = imgs
+      case ListSelectionChanged(`tagBox`, _, _) => actor{
+        inTransaction{
+          val imgs = tagBox.selection.items.head.images.toSeq
+          if (!imgs.isEmpty) imagePane.listData = imgs
+        }
       }
     }
 
