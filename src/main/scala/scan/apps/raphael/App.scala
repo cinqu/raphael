@@ -16,6 +16,8 @@ object App extends SimpleSwingApplication {
     lazy val waitCursor = new Cursor(Cursor.WAIT_CURSOR)
     lazy val defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR)
 
+    def filterTags(tagStr: String) = tagStr.split(' ').map(_.toLowerCase).distinct.filter(_.matches("""!?[^\s,!\.]*""")).toSeq
+
     lazy val openAction: Action = Action("Add Folder to Collection") {
       val chooser = new FileChooser {
         multiSelectionEnabled = false
@@ -51,7 +53,7 @@ object App extends SimpleSwingApplication {
         actor{
           cursor = waitCursor
 
-          newTag.text.split(' ').foreach{
+          filterTags(newTag.text).foreach{
             t =>
               imagePane.selection.items.foreach(Library.tag(_, Library.findOrAddTag(t)))
               imagePane.repaint
@@ -77,7 +79,7 @@ object App extends SimpleSwingApplication {
       case EditDone(`tagSearch`) => actor{
         cursor = waitCursor
         inTransaction{
-          val tags = tagSearch.text.split(' ').toList
+          val tags = filterTags(tagSearch.text)
           tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq)
         }
         cursor = defaultCursor
