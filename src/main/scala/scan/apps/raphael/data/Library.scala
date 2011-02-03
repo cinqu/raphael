@@ -24,7 +24,7 @@ object Library extends Schema {
     t.name is (dbType("varchar(30)"))
   ))
 
-  def activate : Unit = {
+  def activate: Unit = {
     val dbString = "jdbc:h2:" + Config.configDir + "/database"
 
     Class.forName("org.h2.Driver")
@@ -69,5 +69,9 @@ object Library extends Schema {
 
   def tag(img: ImageFile, tag: Tag) = inTransaction{
     imageTags.insert(ImageTag(img.id, tag.id))
+  }
+
+  def untag(img: ImageFile, tag: Tag) = inTransaction{
+    imageTags.deleteWhere(it => (it.imageId === img.id) and (it.tagId === tag.id))
   }
 }

@@ -55,7 +55,11 @@ object App extends SimpleSwingApplication {
 
           filterTags(newTag.text).foreach{
             t =>
-              imagePane.selection.items.foreach(Library.tag(_, Library.findOrAddTag(t)))
+              if (t.startsWith("!")) {
+                imagePane.selection.items.foreach(Library.untag(_, Library.findOrAddTag(t.substring(1))))
+              } else {
+                imagePane.selection.items.foreach(Library.tag(_, Library.findOrAddTag(t)))
+              }
               imagePane.repaint
           }
 
@@ -80,7 +84,7 @@ object App extends SimpleSwingApplication {
         cursor = waitCursor
         inTransaction{
           val tags = filterTags(tagSearch.text)
-          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq)
+          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted
         }
         cursor = defaultCursor
       }
@@ -96,7 +100,7 @@ object App extends SimpleSwingApplication {
               imgs ++= tag.images.toSeq
           }
         }
-        imagePane.listData = imgs.distinct
+        imagePane.listData = imgs.distinct.sorted
 
         cursor = defaultCursor
       }
