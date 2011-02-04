@@ -2,16 +2,59 @@ package scan.apps.raphael
 
 import scala.swing._
 import data.ImageFile
+import scala.actors._
+import Actor._
 
 class ImageShow(images: Array[ImageFile]) extends Frame {
   private var index = 0
+  private var shuffle = false
+
+  player.start
+
+  trait Event
+
+  case object Play extends Event
+
+  case object Pause extends Event
+
+  object player extends Actor {
+    var paused = true
+
+    def act = {
+      loop{
+        react{
+          case Play => {
+            paused = false
+            next.restart
+          }
+          case Pause => {
+            paused = true
+          }
+        }
+      }
+    }
+
+    val next = actor{
+      while (!paused) {
+        if (shuffle) {
+          import scala.util.Random._
+          index = nextInt(images.length)
+        }
+        else {
+          if (index < images.length - 1) index += 1 else index = 0
+        }
+        imagePane.repaint
+        Thread.sleep(5000)
+      }
+    }
+  }
 
   private lazy val infoLabel = new Label("0") {
     horizontalTextPosition = Alignment.Center
   }
 
   private lazy val imagePane = new Panel {
-    preferredSize = new Dimension(500, 500)
+    preferredSize = new Dimension(600, 600)
 
     override def paint(g: Graphics2D) = {
       import javax.imageio.ImageIO._
@@ -57,7 +100,11 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
     })
     contents += infoLabel
     contents += new Button(Action("Next") {
-      if (index < images.length - 1) {
+      if (shuffle) {
+        import scala.util.Random._
+        index = nextInt(images.length)
+      }
+      else if (index < images.length - 1) {
         index += 1
       }
       imagePane.repaint
@@ -66,8 +113,18 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
       index = images.length - 1
       imagePane.repaint
     })
-    contents += new ToggleButton("Play")
-    contents += new ToggleButton("Shuffle")
+    contents += new ToggleButton {
+      action = Action("Play") {
+        if (selected) player ! Play
+        else player ! Pause
+      }
+    }
+    contents += new ToggleButton("Shuffle") {
+      action = Action("Shuffle") {
+        if (selected) shuffle = true
+        else shuffle = false
+      }
+    }
   }
 
   contents = new BorderPanel {
