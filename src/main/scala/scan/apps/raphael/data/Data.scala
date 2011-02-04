@@ -17,9 +17,19 @@ case class Tag(val name: String) extends KeyedEntity[Long] {
 
   lazy val images = Library.imageTags.right(this)
 
+  def imageNum = images.count(_ => true)
+
   override def toString = inTransaction{
-    name + " " + images.count(_ => true)
+    name + " " + imageNum
   }
+}
+
+object TagOrdering extends Ordering[Tag] {
+  def compare(x: Tag, y: Tag) = x.imageNum - y.imageNum
+}
+
+object ImageFileOrdering extends Ordering[ImageFile] {
+  def compare(x: ImageFile, y: ImageFile) = scala.math.Ordering.String.compare(x.path, y.path)
 }
 
 case class ImageTag(val imageId: Long, val tagId: Long) extends KeyedEntity[CompositeKey2[Long, Long]] {

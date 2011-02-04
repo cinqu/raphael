@@ -47,7 +47,10 @@ object App extends SimpleSwingApplication {
       lazy val newTag = new TextField
 
       contents += new Button(openAction)
-      contents += new Button("Start Slideshow")
+      contents += new Button(Action("Start Slideshow"){
+        val v = new ImageShow(imagePane.listData.toArray)
+        v.open
+      })
       contents += newTag
       contents += new Button(Action("Tag!") {
         actor{
@@ -84,7 +87,7 @@ object App extends SimpleSwingApplication {
         cursor = waitCursor
         inTransaction{
           val tags = filterTags(tagSearch.text)
-          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted
+          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
         }
         cursor = defaultCursor
       }
@@ -100,7 +103,7 @@ object App extends SimpleSwingApplication {
               imgs ++= tag.images.toSeq
           }
         }
-        imagePane.listData = imgs.distinct.sorted
+        imagePane.listData = imgs.distinct.sorted(ImageFileOrdering)
 
         cursor = defaultCursor
       }
