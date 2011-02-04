@@ -98,16 +98,14 @@ object App extends SimpleSwingApplication {
       case ListSelectionChanged(`tagBox`, _, _) => actor{
         cursor = waitCursor
 
-        var imgs: Seq[ImageFile] = Seq.empty
+        imagePane.listData = Seq.empty
 
         inTransaction{
           tagBox.selection.items.foreach{
             tag =>
-              imgs ++= tag.images.toSeq
+              imagePane.listData = (imagePane.listData union tag.images.toSeq).sorted(ImageFileOrdering)
           }
         }
-        imagePane.listData = imgs.distinct.sorted(ImageFileOrdering)
-
         cursor = defaultCursor
       }
     }
