@@ -27,8 +27,9 @@ object App extends SimpleSwingApplication {
       chooser.showOpenDialog(commandPane) match {
         case FileChooser.Result.Approve => actor{
           cursor = waitCursor
-          Library.doImport(chooser.selectedFile)
+          val n = Library.doImport(chooser.selectedFile)
           cursor = defaultCursor
+          Dialog.showMessage(commandPane, "Imported " + n + " Images", "", Dialog.Message.Info, null)
         }
       }
     }
@@ -47,9 +48,11 @@ object App extends SimpleSwingApplication {
       lazy val newTag = new TextField
 
       contents += new Button(openAction)
-      contents += new Button(Action("Start Slideshow"){
-        val v = new ImageShow(imagePane.listData.toArray)
-        v.open
+      contents += new Button(Action("Start Slideshow") {
+        if (imagePane.listData.nonEmpty) {
+          val v = new ImageShow(imagePane.listData.toArray)
+          v.open
+        }
       })
       contents += newTag
       contents += new Button(Action("Tag!") {

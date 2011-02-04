@@ -57,8 +57,6 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
     preferredSize = new Dimension(600, 600)
 
     override def paint(g: Graphics2D) = {
-      import javax.imageio.ImageIO._
-      import java.io.File
       import java.awt.geom.AffineTransform._
       import java.awt.RenderingHints._
 
@@ -76,7 +74,7 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
         }
       }
 
-      val img = read(new File(images(index).path))
+      val img = images(index).image
 
       g.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
 

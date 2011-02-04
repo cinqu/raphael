@@ -24,8 +24,7 @@ class ImageRenderer(c: Label) extends ListView.AbstractRenderer[ImageFile, Label
   def configure(l: ListView[_], selected: Boolean, focused: Boolean, a: ImageFile, index: Int) = {
     component.xAlignment = Alignment.Left
     component.yAlignment = Alignment.Top
-    val tmp = new ImageIcon(a.path)
-    component.icon = new ImageIcon(tmp.getImage.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST))
+    component.icon = new ImageIcon(a.imageSm)
     component.text = inTransaction(a.tags.map(_.name).reduceRight(_ + ", " + _))
 
     if (selected) {

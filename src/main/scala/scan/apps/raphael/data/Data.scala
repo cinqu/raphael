@@ -10,6 +10,12 @@ case class ImageFile(val path: String) extends KeyedEntity[Long] {
   lazy val tags = Library.imageTags.left(this)
 
   override def toString = path
+
+  import javax.imageio.ImageIO._
+  import java.io.File
+
+  lazy val image = read(new File(path))
+  lazy val imageSm = image.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST)
 }
 
 case class Tag(val name: String) extends KeyedEntity[Long] {

@@ -40,8 +40,10 @@ object Library extends Schema {
     these.filter(f => image_pattern.r.findFirstIn(f.getName).isDefined)
   }
 
-  def doImport(dir: File) = inTransaction{
-    recursiveListImageFiles(dir).foreach(f => findOrAddImage(f.getPath))
+  def doImport(dir: File): Int = inTransaction{
+    val l = recursiveListImageFiles(dir)
+    l.foreach(f => findOrAddImage(f.getPath))
+    l.length
   }
 
   def findOrAddTag(t: String) = inTransaction{
