@@ -1,6 +1,7 @@
 package scan.apps.raphael
 
 import scala.swing._
+import event._
 import data.ImageFile
 import scala.actors._
 import Actor._
@@ -78,11 +79,29 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
 
       g.setRenderingHint(KEY_INTERPOLATION, VALUE_INTERPOLATION_BICUBIC);
 
-      val scale = getScale(img.getWidth, img.getHeight)
-      val at = getTranslateInstance((this.size.width - scale * img.getWidth) / 2, (this.size.height - scale * img.getHeight) / 2)
+      val scale = getScale(img.getWidth(this.peer), img.getHeight(this.peer))
+      val at = getTranslateInstance((this.size.width - scale * img.getWidth(this.peer)) / 2, (this.size.height - scale * img.getHeight(this.peer)) / 2)
       at.scale(scale, scale)
-      g.drawRenderedImage(img, at)
+      g.drawImage(img, at, this.peer)
     }
+  }
+
+  private def next = {
+    if (shuffle) {
+      import scala.util.Random._
+      index = nextInt(images.length)
+    }
+    else if (index < images.length - 1) {
+      index += 1
+    }
+    imagePane.repaint
+  }
+
+  private def prev = {
+    if (index > 0) {
+      index -= 1
+    }
+    imagePane.repaint
   }
 
   private lazy val controlPane = new BoxPanel(Orientation.Horizontal) {
@@ -91,21 +110,11 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
       imagePane.repaint
     })
     contents += new Button(Action("Previous") {
-      if (index > 0) {
-        index -= 1
-      }
-      imagePane.repaint
+      prev
     })
     contents += infoLabel
     contents += new Button(Action("Next") {
-      if (shuffle) {
-        import scala.util.Random._
-        index = nextInt(images.length)
-      }
-      else if (index < images.length - 1) {
-        index += 1
-      }
-      imagePane.repaint
+      next
     })
     contents += new Button(Action("Last") {
       index = images.length - 1
@@ -123,6 +132,15 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
         else shuffle = false
       }
     }
+  }
+
+  listenTo(imagePane.keys)
+
+  import Key._
+
+  reactions += {
+    case KeyReleased(_, Left, _, _) => next
+    case KeyReleased(_, Right, _, _) => prev
   }
 
   contents = new BorderPanel {

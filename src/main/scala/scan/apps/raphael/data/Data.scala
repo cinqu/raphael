@@ -11,10 +11,14 @@ case class ImageFile(val path: String) extends KeyedEntity[Long] {
 
   override def toString = path
 
-  import javax.imageio.ImageIO._
-  import java.io.File
+  //import javax.imageio.ImageIO._
+  //import java.io.File
 
-  lazy val image = read(new File(path))
+  import java.awt.Toolkit._
+
+  private def toolkit = getDefaultToolkit
+
+  lazy val image = toolkit.getImage(path)
   lazy val imageSm = image.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST)
 }
 

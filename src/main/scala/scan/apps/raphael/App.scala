@@ -83,10 +83,10 @@ object App extends SimpleSwingApplication {
       renderer = new TagRenderer(new Label)
     }
 
-    listenTo(tagSearch, tagBox.selection, imagePane)
+    listenTo(tagSearch.keys, tagBox.selection, imagePane)
 
     reactions += {
-      case EditDone(`tagSearch`) => actor{
+      case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor{
         cursor = waitCursor
         inTransaction{
           val tags = filterTags(tagSearch.text)
@@ -101,11 +101,13 @@ object App extends SimpleSwingApplication {
         imagePane.listData = inTransaction{
           if (tagBox.selection.items.nonEmpty) {
             var imgs = tagBox.selection.items.head.images.toSeq
-            tagBox.selection.items.tail.foreach{
-              tag =>
-                imgs = (imgs intersect tag.images.toSeq).sorted(ImageFileOrdering)
+            if (tagBox.selection.items.nonEmpty) {
+              tagBox.selection.items.tail.foreach{
+                tag =>
+                  imgs = imgs intersect tag.images.toSeq
+              }
             }
-            imgs
+            imgs.sorted(ImageFileOrdering)
           } else {
             imagePane.listData
           }
@@ -113,6 +115,7 @@ object App extends SimpleSwingApplication {
 
         cursor = defaultCursor
       }
+
     }
 
     contents = new BorderPanel {
