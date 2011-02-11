@@ -2,7 +2,7 @@
 
 ## Idea
 
-Several web pages allow one to upload images and tag them for easier find. Raphael now allows you, in one lightweight application, to tag your image collection and easily sort and find them.
+Several web pages allow one to upload images and tag them for easier find. Raphael now allows you, in one lightweight application, to do this on your home machine.
 
 ## Features
 
