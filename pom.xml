@@ -31,7 +31,7 @@
             <artifactId>scala-swing</artifactId>
             <version>${scala.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-actors</artifactId>
@@ -84,6 +84,7 @@
                     </jvmArgs>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>appassembler-maven-plugin</artifactId>
