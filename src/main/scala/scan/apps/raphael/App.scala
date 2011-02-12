@@ -13,6 +13,8 @@ object App extends SimpleSwingApplication {
     title = "Raphael 0.1"
     preferredSize = new Dimension(800, 600)
 
+    def top = this
+
     lazy val waitCursor = new Cursor(Cursor.WAIT_CURSOR)
     lazy val defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR)
 
@@ -25,11 +27,12 @@ object App extends SimpleSwingApplication {
       }
 
       chooser.showOpenDialog(commandPane) match {
-        case FileChooser.Result.Approve => actor{
-          cursor = waitCursor
-          val n = Library.doImport(chooser.selectedFile)
-          cursor = defaultCursor
-          Dialog.showMessage(commandPane, "Imported " + n + " Images", "", Dialog.Message.Info, null)
+        case FileChooser.Result.Approve => actor {
+          top.cursor = waitCursor
+          val imgs = Library.doImport(chooser.selectedFile)
+          imagePane.listData = imgs
+          top.cursor = defaultCursor
+          Dialog.showMessage(commandPane, "Imported " + imgs.length + " Images", "", Dialog.Message.Info, null)
         }
       }
     }
@@ -56,10 +59,10 @@ object App extends SimpleSwingApplication {
       })
       contents += newTag
       contents += new Button(Action("Tag!") {
-        actor{
+        actor {
           cursor = waitCursor
 
-          filterTags(newTag.text).foreach{
+          filterTags(newTag.text).foreach {
             t =>
               if (t.startsWith("!")) {
                 imagePane.selection.items.foreach(Library.untag(_, Library.findOrAddTag(t.substring(1))))
@@ -86,23 +89,23 @@ object App extends SimpleSwingApplication {
     listenTo(tagSearch.keys, tagBox.selection, imagePane)
 
     reactions += {
-      case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor{
+      case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor {
         cursor = waitCursor
-        inTransaction{
+        inTransaction {
           val tags = filterTags(tagSearch.text)
           tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
         }
         cursor = defaultCursor
       }
 
-      case ListSelectionChanged(`tagBox`, _, _) => actor{
+      case ListSelectionChanged(`tagBox`, _, _) => actor {
         cursor = waitCursor
 
-        imagePane.listData = inTransaction{
+        imagePane.listData = inTransaction {
           if (tagBox.selection.items.nonEmpty) {
             var imgs = tagBox.selection.items.head.images.toSeq
             if (tagBox.selection.items.nonEmpty) {
-              tagBox.selection.items.tail.foreach{
+              tagBox.selection.items.tail.foreach {
                 tag =>
                   imgs = imgs intersect tag.images.toSeq
               }

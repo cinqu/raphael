@@ -22,8 +22,8 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
     var paused = true
 
     def act = {
-      loop{
-        react{
+      loop {
+        react {
           case Play => {
             paused = false
             next.restart
@@ -35,7 +35,7 @@ class ImageShow(images: Array[ImageFile]) extends Frame {
       }
     }
 
-    val next = actor{
+    val next = actor {
       while (!paused) {
         if (shuffle) {
           import scala.util.Random._

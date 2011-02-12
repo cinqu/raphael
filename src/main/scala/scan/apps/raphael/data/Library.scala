@@ -33,20 +33,17 @@ object Library extends Schema {
     )
   }
 
-  private def recursiveListImageFiles(f: File): Array[File] = {
-    val image_pattern = """.*(\.(?i)(jpg|png|gif|bmp))$"""
-    val these = f.listFiles
-    these ++ these.filter(_.isDirectory).flatMap(recursiveListImageFiles)
-    these.filter(f => image_pattern.r.findFirstIn(f.getName).isDefined)
+  private def listImageFiles(f: File): Array[File] = {
+    val image_pattern = (""".*(\.(?i)(jpg|png|gif|bmp))$""").r
+    f.listFiles.filter(f => image_pattern.findFirstIn(f.getName).isDefined)
   }
 
-  def doImport(dir: File): Int = inTransaction{
-    val l = recursiveListImageFiles(dir)
-    l.foreach(f => findOrAddImage(f.getPath))
-    l.length
+  def doImport(dir: File): Seq[ImageFile] = inTransaction {
+    val l = listImageFiles(dir)
+    l.toSeq.map(f => findOrAddImage(f.getPath))
   }
 
-  def findOrAddTag(t: String) = inTransaction{
+  def findOrAddTag(t: String) = inTransaction {
     val r = tags.where(_.name === t)
     if (r.isEmpty) {
       val tmp = Tag(t)
@@ -57,7 +54,7 @@ object Library extends Schema {
     }
   }
 
-  def findOrAddImage(t: String) = inTransaction{
+  def findOrAddImage(t: String) = inTransaction {
     val r = images.where(_.path === t)
     if (r.isEmpty) {
       val tmp = ImageFile(t)
@@ -69,11 +66,11 @@ object Library extends Schema {
     }
   }
 
-  def tag(img: ImageFile, tag: Tag) = inTransaction{
+  def tag(img: ImageFile, tag: Tag) = inTransaction {
     imageTags.insert(ImageTag(img.id, tag.id))
   }
 
-  def untag(img: ImageFile, tag: Tag) = inTransaction{
+  def untag(img: ImageFile, tag: Tag) = inTransaction {
     imageTags.deleteWhere(it => (it.imageId === img.id) and (it.tagId === tag.id))
   }
 }
