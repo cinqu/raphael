@@ -19,7 +19,6 @@ case class ImageFile(val path: String) extends KeyedEntity[Long] {
   private def toolkit = getDefaultToolkit
 
   lazy val image = toolkit.getImage(path)
-  lazy val imageSm = image.getScaledInstance(80, 80, java.awt.Image.SCALE_FAST)
 }
 
 case class Tag(val name: String) extends KeyedEntity[Long] {
@@ -29,7 +28,7 @@ case class Tag(val name: String) extends KeyedEntity[Long] {
 
   def imageNum = images.count(_ => true)
 
-  override def toString = inTransaction{
+  override def toString = inTransaction {
     name + " " + imageNum
   }
 }
