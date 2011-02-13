@@ -25,6 +25,8 @@ object App extends SimpleSwingApplication {
       horizontalTextPosition = Alignment.Center
     }
 
+    lazy val newTag = new TextField
+
     private def filterTags(tagStr: String) = tagStr.split(' ').map(_.toLowerCase).distinct.filter(_.matches("""!?[^\s,!\.]*""")).toSeq
 
     menuBar = new MenuBar {
@@ -52,25 +54,19 @@ object App extends SimpleSwingApplication {
     }
 
     lazy val commandPane: BoxPanel = new BoxPanel(Orientation.Horizontal) {
-      lazy val newTag = new TextField
-
       contents += new Button(Action("First") {
         imagePane.first
-        numField.text = imagePane.index.toString
       })
       contents += new Button(Action("Prev") {
         imagePane.prev
-        numField.text = imagePane.index.toString
       })
       contents += numField
       contents += lengthLabel
       contents += new Button(Action("Next") {
         imagePane.next
-        numField.text = imagePane.index.toString
       })
       contents += new Button(Action("Last") {
         imagePane.last
-        numField.text = imagePane.index.toString
       })
 
       contents += new ToggleButton {
@@ -98,7 +94,7 @@ object App extends SimpleSwingApplication {
               } else {
                 Library.tag(imagePane.current, Library.findOrAddTag(t))
               }
-              imagePane.repaint
+              imagePane.update
           }
 
           top.cursor = defaultCursor
@@ -107,13 +103,12 @@ object App extends SimpleSwingApplication {
     }
 
     lazy val tagSearch = new TextField
-
-    lazy val imagePane = new ImagePane
     lazy val tagBox: ListView[Tag] = new ListView[Tag](Seq.empty) {
       renderer = new TagRenderer(new Label)
     }
+    lazy val imagePane = new ImagePane(numField, lengthLabel, tagBox)
 
-    listenTo(tagSearch.keys, tagBox.selection, numField)
+    listenTo(tagSearch.keys, tagBox.selection, numField, newTag.keys)
 
     reactions += {
       case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor {
@@ -122,6 +117,22 @@ object App extends SimpleSwingApplication {
           val tags = filterTags(tagSearch.text)
           tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
         }
+        top.cursor = defaultCursor
+      }
+
+      case KeyPressed(`newTag`, Key.Enter, _, _) => actor {
+        top.cursor = waitCursor
+
+        filterTags(newTag.text).foreach {
+          t =>
+            if (t.startsWith("!")) {
+              Library.untag(imagePane.current, Library.findOrAddTag(t.substring(1)))
+            } else {
+              Library.tag(imagePane.current, Library.findOrAddTag(t))
+            }
+            imagePane.update
+        }
+
         top.cursor = defaultCursor
       }
 
@@ -169,6 +180,10 @@ object App extends SimpleSwingApplication {
     }
 
     Library.activate
-  }
+    tagBox.listData = Seq(Library.untagged)
+    imagePane.imageList = inTransaction {
+      Library.untagged.images.toSeq
+    }
 
+  }
 }
