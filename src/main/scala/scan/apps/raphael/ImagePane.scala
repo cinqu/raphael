@@ -9,8 +9,27 @@ import data._
 class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag]) extends BorderPanel {
   lazy val tagLabel = new Label
 
-  var imageList: Seq[ImageFile] = Seq.empty
-  var index: Int = 0
+  private var _imageList: Seq[ImageFile] = Seq.empty
+  private var _index: Int = 0
+
+  def index = _index
+
+  def index_=(i: Int) = {
+    if (i < 0)
+      _index = 0
+    else if (i >= imageList.length)
+      _index = imageList.length - 1
+    else
+      _index = i
+    update
+  }
+
+  def imageList = _imageList
+
+  def imageList_=(list: Seq[ImageFile]) {
+    _imageList = list
+    update
+  }
 
   private def updateField = {
     fieldIndex.text = (index + 1).toString
@@ -18,11 +37,9 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
   }
 
   private def updateTags = actor {
-    tagList.listData = inTransaction {
-      current.tags.toSeq
-    }
-    tagLabel.text = inTransaction {
-      current.tags.foldLeft("")(_ + " " + _.name)
+    inTransaction {
+      tagList.listData = current.tags.toSeq
+      tagLabel.text = current.tags.foldLeft("")(_ + " " + _.name)
     }
   }
 
@@ -32,16 +49,7 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
     repaint
   }
 
-  def current = {
-    if (index < 0)
-      index = 0
-    else if (index >= imageList.length)
-      index = imageList.length - 1
-
-    updateField
-
-    if (imageList.nonEmpty) imageList(index) else null
-  }
+  def current = if (imageList.nonEmpty) imageList(index) else null
 
   player.start
 
@@ -88,9 +96,6 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
         else {
           if (index < imageList.length - 1) index += 1 else index = 0
         }
-        updateField
-        updateTags
-        repaint
         Thread.sleep(5000)
       }
     }
@@ -134,22 +139,18 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
 
   def first = {
     index = 0
-    update
   }
 
   def last = {
     index = imageList.length - 1
-    update
   }
 
   def next = {
     index = if (index < imageList.length - 1) index + 1 else 0
-    update
   }
 
   def prev = {
     index = if (index > 0) index - 1 else imageList.length - 1
-    update
   }
 
   def play = {

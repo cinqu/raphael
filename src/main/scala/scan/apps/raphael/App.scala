@@ -84,21 +84,7 @@ object App extends SimpleSwingApplication {
 
       contents += newTag
       contents += new Button(Action("Tag!") {
-        actor {
-          top.cursor = waitCursor
-
-          filterTags(newTag.text).foreach {
-            t =>
-              if (t.startsWith("!")) {
-                Library.untag(imagePane.current, Library.findOrAddTag(t.substring(1)))
-              } else {
-                Library.tag(imagePane.current, Library.findOrAddTag(t))
-              }
-              imagePane.update
-          }
-
-          top.cursor = defaultCursor
-        }
+        tag
       })
     }
 
@@ -120,21 +106,7 @@ object App extends SimpleSwingApplication {
         top.cursor = defaultCursor
       }
 
-      case KeyPressed(`newTag`, Key.Enter, _, _) => actor {
-        top.cursor = waitCursor
-
-        filterTags(newTag.text).foreach {
-          t =>
-            if (t.startsWith("!")) {
-              Library.untag(imagePane.current, Library.findOrAddTag(t.substring(1)))
-            } else {
-              Library.tag(imagePane.current, Library.findOrAddTag(t))
-            }
-            imagePane.update
-        }
-
-        top.cursor = defaultCursor
-      }
+      case KeyPressed(`newTag`, Key.Enter, _, _) => tag
 
       case ListSelectionChanged(`tagBox`, _, _) => actor {
         top.cursor = waitCursor
@@ -163,6 +135,22 @@ object App extends SimpleSwingApplication {
       }
     }
 
+    def tag = actor {
+      top.cursor = waitCursor
+
+      filterTags(newTag.text).foreach {
+        t =>
+          if (t.startsWith("!")) {
+            Library.untag(imagePane.current, Library.findOrAddTag(t.substring(1)))
+          } else {
+            Library.tag(imagePane.current, Library.findOrAddTag(t))
+          }
+          imagePane.update
+      }
+
+      top.cursor = defaultCursor
+    }
+
     contents = new BorderPanel {
 
       import BorderPanel.Position._
@@ -184,6 +172,5 @@ object App extends SimpleSwingApplication {
     imagePane.imageList = inTransaction {
       Library.untagged.images.toSeq
     }
-
   }
 }
