@@ -3,6 +3,7 @@ package scan.apps.raphael
 import scala.actors._
 import Actor._
 import scala.swing._
+import event._
 import org.squeryl.PrimitiveTypeMode._
 import data._
 
@@ -11,6 +12,7 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
 
   private var _imageList: Seq[ImageFile] = Seq.empty
   private var _index: Int = 0
+  private var scaled = true;
 
   def index = _index
 
@@ -47,9 +49,18 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
     updateField
     updateTags
     repaint
+    requestFocus
   }
 
   def current = if (imageList.nonEmpty) imageList(index) else null
+
+  focusable = true
+
+  listenTo(this.keys)
+  reactions += {
+    case KeyPressed(_, Key.Left, _, _) => prev
+    case KeyPressed(_, Key.Right, _, _) => next
+  }
 
   player.start
 
@@ -111,12 +122,15 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
       def getScale(img_w: Int, img_h: Int): Double = {
         import scala.math.{min}
 
-        val (win_w, win_h) = (this.size.width, this.size.height)
+        if (!scaled) 1
+        else {
+          val (win_w, win_h) = (this.size.width, this.size.height)
 
-        if (img_w > win_w || img_h > win_h) {
-          min(win_w.toDouble / img_w.toDouble, win_h.toDouble / img_h.toDouble)
+          if (img_w > win_w || img_h > win_h) {
+            min(win_w.toDouble / img_w.toDouble, win_h.toDouble / img_h.toDouble)
+          }
+          else 1
         }
-        else 1
       }
 
       if (current != null) {
@@ -135,7 +149,15 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
   import BorderPanel.Position._
 
   add(image, Center)
-  add(tagLabel, South)
+  add(new BorderPanel {
+    add(tagLabel, Center)
+    add(new ToggleButton("1:1") {
+      action = Action("1:1") {
+        if (selected) scaled = false
+        else scaled = true;
+      }
+    }, East)
+  }, South)
 
   def first = {
     index = 0

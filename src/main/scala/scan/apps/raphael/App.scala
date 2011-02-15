@@ -10,7 +10,7 @@ import java.awt.{Cursor}
 
 object App extends SimpleSwingApplication {
   def top = new MainFrame {
-    title = "Raphael 0.1"
+    title = "Raphael 0.2.8"
     preferredSize = new Dimension(800, 600)
 
     def top = this
@@ -18,11 +18,11 @@ object App extends SimpleSwingApplication {
     lazy val waitCursor = new Cursor(Cursor.WAIT_CURSOR)
     lazy val defaultCursor = new Cursor(Cursor.DEFAULT_CURSOR)
 
-    lazy val numField = new TextField("0") {
+    lazy val numField = new TextField("1") {
       horizontalAlignment = Alignment.Right
     }
     lazy val lengthLabel = new Label("/ 0") {
-      horizontalTextPosition = Alignment.Center
+      horizontalTextPosition = Alignment.Left
     }
 
     lazy val newTag = new TextField
@@ -109,8 +109,19 @@ object App extends SimpleSwingApplication {
       case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor {
         top.cursor = waitCursor
         inTransaction {
-          val tags = filterTags(tagSearch.text)
-          tagBox.listData = tags.flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
+          val tags = filterTags(tagSearch.text).flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
+          imagePane.imageList = if (tags.nonEmpty) {
+            var list = tags.head.images.toSeq
+            if (tags.length > 1) {
+              tags.tail.foreach {
+                tag =>
+                  list = list intersect tag.images.toSeq
+              }
+            }
+            list.sorted(ImageFileOrdering)
+          } else {
+            imagePane.imageList
+          }
         }
         top.cursor = defaultCursor
       }
@@ -122,14 +133,14 @@ object App extends SimpleSwingApplication {
 
         imagePane.imageList = inTransaction {
           if (tagBox.selection.items.nonEmpty) {
-            imagePane.imageList = tagBox.selection.items.head.images.toSeq
-            if (tagBox.selection.items.nonEmpty) {
+            var list = tagBox.selection.items.head.images.toSeq
+            if (tagBox.selection.items.length > 1) {
               tagBox.selection.items.tail.foreach {
                 tag =>
-                  imagePane.imageList = imagePane.imageList intersect tag.images.toSeq
+                  list = list intersect tag.images.toSeq
               }
             }
-            imagePane.imageList.sorted(ImageFileOrdering)
+            list.sorted(ImageFileOrdering)
           } else imagePane.imageList
         }
         imagePane.first
@@ -140,7 +151,6 @@ object App extends SimpleSwingApplication {
 
       case EditDone(`numField`) => {
         imagePane.index = numField.text.toInt
-        imagePane.repaint
       }
     }
 
