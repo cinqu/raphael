@@ -73,4 +73,15 @@ object Library extends Schema {
   def untag(img: ImageFile, tag: Tag) = inTransaction {
     imageTags.deleteWhere(it => (it.imageId === img.id) and (it.tagId === tag.id))
   }
+
+  def checkImages = inTransaction {
+    var num = 0
+    images.foreach(img => {
+      if (!(new File(img.path)).exists) {
+        images.deleteWhere(i => i.path === img.path)
+        imageTags.deleteWhere(it => it.imageId === img.id)
+      }
+    })
+    num
+  }
 }

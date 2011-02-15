@@ -42,9 +42,18 @@ object App extends SimpleSwingApplication {
               top.cursor = waitCursor
               imagePane.imageList = Library.doImport(chooser.selectedFile)
               top.cursor = defaultCursor
-              Dialog.showMessage(commandPane, "Imported " + imagePane.imageList.length + " Images", "", Dialog.Message.Info, null)
+              Dialog.showMessage(imagePane, "Imported " + imagePane.imageList.length + " Images", "", Dialog.Message.Info, null)
             }
           }
+        })
+        contents += new MenuItem(Action("Check Collection") {
+          top.cursor = waitCursor
+          var num = 0
+          actor {
+            num = Library.checkImages
+          }
+          top.cursor = defaultCursor
+          Dialog.showMessage(imagePane, "Removed " + num + " images from database.", "", Dialog.Message.Info, null)
         })
         contents += new Separator
         contents += new MenuItem(Action("Quit") {
