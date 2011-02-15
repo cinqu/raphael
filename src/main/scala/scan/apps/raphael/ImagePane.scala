@@ -6,8 +6,9 @@ import scala.swing._
 import event._
 import org.squeryl.PrimitiveTypeMode._
 import data._
+import java.io.{File}
 
-class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag]) extends BorderPanel {
+class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag], infoBox: InfoPane) extends BorderPanel {
   lazy val tagLabel = new Label
 
   private var _imageList: Seq[ImageFile] = Seq.empty
@@ -50,6 +51,27 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
     updateTags
     repaint
     requestFocus
+  }
+
+
+  val act1 = actor {
+    loop {
+      val m = current
+
+      if (m != null) {
+        val img = new File(current.path)
+        infoBox.title = img.getName
+        infoBox.directory = img.getParent
+        infoBox.fileSize = img.length
+
+        infoBox.width = m.image.getWidth(this.peer)
+        infoBox.height = m.image.getHeight(this.peer)
+
+        infoBox.update
+
+        Thread.sleep(1000)
+      }
+    }
   }
 
   def current = if (imageList.nonEmpty) imageList(index) else null
@@ -114,12 +136,14 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
 
   lazy val image = new Panel {
     override def paint(g: Graphics2D) = {
+
       import java.awt.geom.AffineTransform._
       import java.awt.RenderingHints._
 
       g.clearRect(0, 0, size.width, size.height)
 
       def getScale(img_w: Int, img_h: Int): Double = {
+
         import scala.math.{min}
 
         if (!scaled) 1

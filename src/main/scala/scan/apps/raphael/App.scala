@@ -27,6 +27,8 @@ object App extends SimpleSwingApplication {
 
     lazy val newTag = new TextField
 
+    lazy val infoBox = new InfoPane(numField, lengthLabel)
+
     private def filterTags(tagStr: String) = tagStr.split(' ').map(_.toLowerCase).distinct.filter(_.matches("""!?[^\s,!\.]*""")).toSeq
 
     menuBar = new MenuBar {
@@ -63,19 +65,11 @@ object App extends SimpleSwingApplication {
     }
 
     lazy val commandPane: BoxPanel = new BoxPanel(Orientation.Horizontal) {
-      contents += new Button(Action("First") {
-        imagePane.first
-      })
       contents += new Button(Action("Prev") {
         imagePane.prev
       })
-      contents += numField
-      contents += lengthLabel
       contents += new Button(Action("Next") {
         imagePane.next
-      })
-      contents += new Button(Action("Last") {
-        imagePane.last
       })
 
       contents += new ToggleButton {
@@ -101,7 +95,7 @@ object App extends SimpleSwingApplication {
     lazy val tagBox: ListView[Tag] = new ListView[Tag](Seq.empty) {
       renderer = new TagRenderer(new Label)
     }
-    lazy val imagePane = new ImagePane(numField, lengthLabel, tagBox)
+    lazy val imagePane = new ImagePane(numField, lengthLabel, tagBox, infoBox)
 
     listenTo(tagSearch.keys, tagBox.selection, numField, newTag.keys)
 
@@ -144,13 +138,11 @@ object App extends SimpleSwingApplication {
           } else imagePane.imageList
         }
         imagePane.first
-        lengthLabel.text = "/ " + imagePane.imageList.length
-        numField.text = imagePane.index.toString
         top.cursor = defaultCursor
       }
 
       case EditDone(`numField`) => {
-        imagePane.index = numField.text.toInt
+        imagePane.index = (numField.text.toInt) - 1
       }
     }
 
@@ -182,6 +174,7 @@ object App extends SimpleSwingApplication {
 
         add(new ScrollPane(tagBox), Center)
         add(tagSearch, North)
+        add(infoBox, South)
       }, new ScrollPane(imagePane)), Center)
       add(commandPane, South)
     }
