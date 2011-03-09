@@ -1,6 +1,6 @@
 import sbt._
 
-class RaphaelProject(info: ProjectInfo) extends DefaultProject(info) {
+class RaphaelProject(info: ProjectInfo) extends DefaultProject(info) with IdeaProject {
   override def shouldCheckOutputDirectories = false
 
   override def compileOptions = super.compileOptions ++ Seq(Optimize, target(Target.Java1_5))
