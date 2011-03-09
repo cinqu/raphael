@@ -103,7 +103,7 @@ object App extends SimpleSwingApplication {
       case KeyPressed(`tagSearch`, Key.Enter, _, _) => actor {
         top.cursor = waitCursor
         inTransaction {
-          val tags = filterTags(tagSearch.text).flatMap(s => Library.tags.where(_.name like s).toSeq).sorted(TagOrdering)
+          val tags = filterTags(tagSearch.text).flatMap(s => Library.tags.where(_.name like s).toSeq).sorted
           imagePane.imageList = if (tags.nonEmpty) {
             var list = tags.head.images.toSeq
             if (tags.length > 1) {
@@ -112,7 +112,7 @@ object App extends SimpleSwingApplication {
                   list = list intersect tag.images.toSeq
               }
             }
-            list.sorted(ImageFileOrdering)
+            list.sorted
           } else {
             imagePane.imageList
           }
@@ -134,7 +134,7 @@ object App extends SimpleSwingApplication {
                   list = list intersect tag.images.toSeq
               }
             }
-            list.sorted(ImageFileOrdering)
+            list.sorted
           } else imagePane.imageList
         }
         imagePane.first

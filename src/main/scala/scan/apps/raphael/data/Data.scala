@@ -11,9 +11,6 @@ case class ImageFile(val path: String) extends KeyedEntity[Long] {
 
   override def toString = path
 
-  //import javax.imageio.ImageIO._
-  //import java.io.File
-
   import java.awt.Toolkit._
 
   private def toolkit = getDefaultToolkit
@@ -33,12 +30,20 @@ case class Tag(val name: String) extends KeyedEntity[Long] {
   }
 }
 
-object TagOrdering extends Ordering[Tag] {
-  def compare(x: Tag, y: Tag) = x.imageNum - y.imageNum
+object Tag {
+
+  implicit object TagOrdering extends Ordering[Tag] {
+    def compare(x: Tag, y: Tag) = x.imageNum - y.imageNum
+  }
+
 }
 
-object ImageFileOrdering extends Ordering[ImageFile] {
-  def compare(x: ImageFile, y: ImageFile) = scala.math.Ordering.String.compare(x.path, y.path)
+object ImageFile {
+
+  implicit object ImageFileOrdering extends Ordering[ImageFile] {
+    def compare(x: ImageFile, y: ImageFile) = scala.math.Ordering.String.compare(x.path, y.path)
+  }
+
 }
 
 case class ImageTag(val imageId: Long, val tagId: Long) extends KeyedEntity[CompositeKey2[Long, Long]] {

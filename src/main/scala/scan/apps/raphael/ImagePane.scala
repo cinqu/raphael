@@ -53,7 +53,6 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
     requestFocus
   }
 
-
   val act1 = actor {
     loop {
       val m = current
@@ -69,7 +68,11 @@ class ImagePane(fieldIndex: TextField, lengthLabel: Label, tagList: ListView[Tag
 
         infoBox.update
 
-        Thread.sleep(1000)
+        try {
+          Thread.sleep(1000)
+        } catch {
+          case e: Exception => ()
+        }
       }
     }
   }
